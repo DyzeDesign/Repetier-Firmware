@@ -101,6 +101,7 @@ union wizardVar
 #define PRINTER_FLAG3_PRINTING              8 // set explicitly with M530
 #define PRINTER_FLAG3_AUTOREPORT_TEMP       16
 #define PRINTER_FLAG3_SUPPORTS_STARTSTOP    32
+#define PRINTER_FLAG3_DOOR_OPEN             64
 
 // List of possible interrupt events (1-255 allowed)
 #define PRINTER_INTERRUPT_EVENT_JAM_DETECTED 1
@@ -310,6 +311,10 @@ public:
 #endif
 #endif
     static uint16_t menuMode;
+#if DUAL_X_RESOLUTION
+    static float axisX1StepsPerMM;
+    static float axisX2StepsPerMM;
+#endif    
     static float axisStepsPerMM[];
     static float invAxisStepsPerMM[];
     static float maxFeedrate[];
@@ -416,7 +421,8 @@ public:
 #endif
     static float offsetX;                     ///< X-offset for different extruder positions.
     static float offsetY;                     ///< Y-offset for different extruder positions.
-    static float offsetZ;                     ///< Y-offset for different extruder positions.
+    static float offsetZ;                     ///< Z-offset for different extruder positions.
+    static float offsetZ2;                    ///< Z-offset without rotation correction. Required for z probe corrections
     static speed_t vMaxReached;               ///< Maximum reached speed
     static uint32_t msecondsPrinting;         ///< Milliseconds of printing time (means time with heated extruder)
     static float filamentPrinted;             ///< mm of filament printed since counting started
@@ -876,6 +882,13 @@ public:
         flag3 = (b ? flag3 | PRINTER_FLAG3_SUPPORTS_STARTSTOP : flag3 & ~PRINTER_FLAG3_SUPPORTS_STARTSTOP);
     }
 
+    static INLINE uint8_t isDoorOpen()
+    {
+        return (flag3 & PRINTER_FLAG3_DOOR_OPEN) != 0;
+    }
+
+    static bool updateDoorOpen();
+    
     static INLINE uint8_t isHoming()
     {
         return flag2 & PRINTER_FLAG2_HOMING;
@@ -1258,7 +1271,7 @@ public:
     static float runZMaxProbe();
 #endif
 #if FEATURE_Z_PROBE
-	static void startProbing(bool runScript);
+	static bool startProbing(bool runScript);
 	static void finishProbing();
     static float runZProbe(bool first,bool last,uint8_t repeat = Z_PROBE_REPETITIONS,bool runStartScript = true);
     static void measureZProbeHeight(float curHeight);

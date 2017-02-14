@@ -61,6 +61,13 @@ void Commands::commandLoop() {
 void Commands::checkForPeriodicalActions(bool allowNewMoves) {
     Printer::handleInterruptEvent();
     EVENT_PERIODICAL;
+#if defined(DOOR_PIN) && DOOR_PIN > -1
+    if(Printer::updateDoorOpen()) {
+        if(Printer::mode == PRINTER_MODE_LASER) {
+            LaserDriver::changeIntensity(0);
+        }
+    }
+#endif            
     if(!executePeriodical) return; // gets true every 100ms
     executePeriodical = 0;
     EVENT_TIMER_100MS;
@@ -125,12 +132,9 @@ void Commands::waitUntilEndOfAllBuffers() {
     }
 }
 
-void Commands::printCurrentPosition(FSTRINGPARAM(s)) {
+void Commands::printCurrentPosition() {
     float x, y, z;
     Printer::realPosition(x, y, z);
-    if (isnan(x) || isinf(x) || isnan(y) || isinf(y) || isnan(z) || isinf(z)) {
-        Com::printErrorFLN(s); // flag where the error condition came from
-    }
     x += Printer::coordinateOffset[X_AXIS];
     y += Printer::coordinateOffset[Y_AXIS];
     z += Printer::coordinateOffset[Z_AXIS];
@@ -141,6 +145,8 @@ void Commands::printCurrentPosition(FSTRINGPARAM(s)) {
 #ifdef DEBUG_POS
     Com::printF(PSTR("OffX:"),Printer::offsetX); // to debug offset handling
     Com::printF(PSTR(" OffY:"),Printer::offsetY);
+    Com::printF(PSTR(" OffZ:"),Printer::offsetZ);
+    Com::printF(PSTR(" OffZ2:"),Printer::offsetZ2);
     Com::printF(PSTR(" XS:"),Printer::currentPositionSteps[X_AXIS]);
     Com::printF(PSTR(" YS:"),Printer::currentPositionSteps[Y_AXIS]);
     Com::printFLN(PSTR(" ZS:"),Printer::currentPositionSteps[Z_AXIS]);
@@ -181,7 +187,7 @@ void Commands::printTemperatures(bool showRaw) {
         Com::printF(Com::tSpaceSlash,extruder[i].tempControl.targetTemperatureC,0);
 #if TEMP_PID
         Com::printF(Com::tSpaceAt,(int)i);
-        Com::printF(Com::tColon,(pwm_pos[extruder[i].tempControl.pwmIndex])); // Show output of autotune when tuning!
+        Com::printF(Com::tColon,(pwm_pos[extruder[i].tempControl.pwmIndex])); // Show output of auto tune when tuning!
 #endif
 		if((error = extruder[i].tempControl.errorState()) > 0) {
 			Com::printF(PSTR(" D"),(int)i);
@@ -875,6 +881,10 @@ void Commands::processArc(GCode *com) {
 \brief Execute the G command stored in com.
 */
 void Commands::processGCode(GCode *com) {
+    if(EVENT_UNHANDLED_G_CODE(com)) {
+        previousMillisCmd = HAL::timeInMilliseconds();
+        return;
+    }        
     uint32_t codenum; //throw away variable
     switch(com->G) {
         case 0: // G0 -> G1
@@ -883,9 +893,21 @@ void Commands::processGCode(GCode *com) {
             {
                 // disable laser for G0 moves
                 bool laserOn = LaserDriver::laserOn;
-                if(com->G == 0 && Printer::mode == PRINTER_MODE_LASER) {
-                    LaserDriver::laserOn = false;
-                }
+                if(Printer::mode == PRINTER_MODE_LASER) {
+                    if(com->G == 0) {
+                        LaserDriver::laserOn = false;
+                        LaserDriver::firstMove = true; //set G1 flag for Laser
+                    } else {
+#if LASER_WARMUP_TIME > 0                        
+                        uint8_t power = (com->hasX() || com->hasY()) && (LaserDriver::laserOn || com->hasE()) ? LaserDriver::intensity : 0;
+                        if(power > 0 && LaserDriver::firstMove) {
+                            PrintLine::waitForXFreeLines(1,true);
+                            PrintLine::LaserWarmUp(LASER_WARMUP_TIME);
+                            LaserDriver::firstMove = false;
+                        }
+#endif                        
+                    }
+                }                
 #endif // defined
                 if(com->hasS()) Printer::setNoDestinationCheck(com->S != 0);
                 if(Printer::setDestinationStepsFromGCode(com)) // For X Y Z E F
@@ -917,6 +939,7 @@ void Commands::processGCode(GCode *com) {
                         Com::printFLN(PSTR("Buffer corrupted"));
                 }
 #endif
+
 #if defined(SUPPORT_LASER) && SUPPORT_LASER
                 LaserDriver::laserOn = laserOn;
             }
@@ -924,8 +947,23 @@ void Commands::processGCode(GCode *com) {
             break;
 #if ARC_SUPPORT
         case 2: // CW Arc
-        case 3: // CCW Arc MOTION_MODE_CW_ARC: case MOTION_MODE_CCW_ARC:
-                processArc(com);
+        case 3: // CCW Arc MOTION_MODE_CW_ARC: case MOTION_MODE_CCW_ARC:   
+#if defined(SUPPORT_LASER) && SUPPORT_LASER
+        {
+            bool laserOn = LaserDriver::laserOn;
+#if LASER_WARMUP_TIME > 0
+            if(Printer::mode == PRINTER_MODE_LASER && LaserDriver::firstMove && (LaserDriver::laserOn || com->hasE())) {
+                PrintLine::waitForXFreeLines(1,true);
+                PrintLine::LaserWarmUp(LASER_WARMUP_TIME);
+                LaserDriver::firstMove = false;
+            }
+#endif            
+#endif // defined
+            processArc(com);
+#if defined(SUPPORT_LASER) && SUPPORT_LASER
+            LaserDriver::laserOn = laserOn;
+        }
+#endif // defined                
             break;
 #endif
         case 4: // G4 dwell
@@ -1041,7 +1079,7 @@ void Commands::processGCode(GCode *com) {
                         EEPROM::storeDataIntoEEPROM();
                 }
                 Printer::updateCurrentPosition(true);
-                printCurrentPosition(PSTR("G29 "));
+                printCurrentPosition();
                 Printer::finishProbing();
                 Printer::feedrate = oldFeedrate;
 				if(!ok) {
@@ -1296,7 +1334,7 @@ void Commands::processGCode(GCode *com) {
 #endif
             Printer::updateCurrentPosition();
             Com::printF(PSTR("PosFromSteps:"));
-            printCurrentPosition(PSTR("G135 "));
+            printCurrentPosition();
             break;
 
 #endif // DRIVE_SYSTEM
@@ -1412,7 +1450,7 @@ void Commands::processGCode(GCode *com) {
             break;
 #endif // defined
         default:
-            if(!EVENT_UNHANDLED_G_CODE(com) && Printer::debugErrors()) {
+            if(Printer::debugErrors()) {
                 Com::printF(Com::tUnknownCommand);
                 com->printCommand();
             }
@@ -1423,6 +1461,8 @@ void Commands::processGCode(GCode *com) {
 \brief Execute the G command stored in com.
 */
 void Commands::processMCode(GCode *com) {
+    if(EVENT_UNHANDLED_M_CODE(com))
+        return;
     switch( com->M ) {
         case 3: // Spindle/laser on
 #if defined(SUPPORT_LASER) && SUPPORT_LASER
@@ -1757,9 +1797,9 @@ void Commands::processMCode(GCode *com) {
 #endif
             Com::cap(PSTR("AUTOREPORT_TEMP:1"));
 #if EEPROM_MODE != 0
-            Com::cap(PSTR("EEPROM:0"));
-#else
             Com::cap(PSTR("EEPROM:1"));
+#else
+            Com::cap(PSTR("EEPROM:0"));
 #endif
 #if FEATURE_AUTOLEVEL && FEATURE_Z_PROBE
             Com::cap(PSTR("AUTOLEVEL:1"));
@@ -1788,7 +1828,7 @@ void Commands::processMCode(GCode *com) {
             break;
         case 114: // M114
             Com::writeToAll = false;
-            printCurrentPosition(PSTR("M114 "));
+            printCurrentPosition();
 			if(com->hasS() && com->S) {
 				Com::printF(PSTR("XS:"),Printer::currentPositionSteps[X_AXIS]);
 				Com::printF(PSTR(" YS:"),Printer::currentPositionSteps[Y_AXIS]);
@@ -2030,7 +2070,7 @@ void Commands::processMCode(GCode *com) {
             Printer::updateAdvanceFlags();
             break;
 #endif
-#if Z_HOME_DIR>0 && MAX_HARDWARE_ENDSTOP_Z
+#if Z_HOME_DIR > 0 && MAX_HARDWARE_ENDSTOP_Z
         case 251: // M251
             Printer::zLength -= Printer::currentPosition[Z_AXIS];
             Printer::currentPositionSteps[Z_AXIS] = 0;
@@ -2044,7 +2084,7 @@ void Commands::processMCode(GCode *com) {
             EEPROM::storeDataIntoEEPROM(false);
             Com::printFLN(Com::tEEPROMUpdated);
 #endif
-            Commands::printCurrentPosition(PSTR("M251 "));
+            Commands::printCurrentPosition();
             break;
 #endif
 #if FEATURE_DITTO_PRINTING
@@ -2484,7 +2524,7 @@ break;
 				GCode::resetFatalError();
 			break;
         default:
-            if(!EVENT_UNHANDLED_M_CODE(com) && Printer::debugErrors()) {
+            if(Printer::debugErrors()) {
                 Com::writeToAll = false;
                 Com::printF(Com::tUnknownCommand);
                 com->printCommand();

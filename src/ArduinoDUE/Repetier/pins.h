@@ -198,6 +198,11 @@ STEPPER_CURRENT_CONTROL
 #define ORIG_E4_DIR_PIN     27
 #define ORIG_E4_ENABLE_PIN  31
 
+#define ORIG_E5_STEP_PIN    67
+#define ORIG_E5_DIR_PIN     66
+#define ORIG_E5_ENABLE_PIN  68
+
+
 #define EXTENSION_BOARD_MS1 67
 #define EXTENSION_BOARD_MS2 68
 #define EXTENSION_BOARD_MS3 69
@@ -231,6 +236,7 @@ STEPPER_CURRENT_CONTROL
 #define E2_PINS ORIG_E2_STEP_PIN,ORIG_E2_DIR_PIN,ORIG_E2_ENABLE_PIN,
 #define E3_PINS ORIG_E3_STEP_PIN,ORIG_E3_DIR_PIN,ORIG_E3_ENABLE_PIN,
 #define E4_PINS ORIG_E4_STEP_PIN,ORIG_E4_DIR_PIN,ORIG_E4_ENABLE_PIN,
+#define E5_PINS ORIG_E5_STEP_PIN,ORIG_E5_DIR_PIN,ORIG_E5_ENABLE_PIN,
 
 #define TWI_CLOCK_FREQ          400000
 // see eeprom device data sheet for the following values these are for 24xx256
@@ -281,6 +287,9 @@ STEPPER_CURRENT_CONTROL
 #define ORIG_Z_MIN_PIN      26
 #define ORIG_Z_MAX_PIN      34
 #define ORIG_Z_ENABLE_PIN   44
+
+// Caution - Heater 0 and 1 are likely reversed compared with other boards,
+// so you might need to assign HEATER_0_PIN to the heated bed.
 
 // Note that on the Due pin A0 on the board is channel 2 on the ARM chip
 #define HEATER_0_PIN     8
@@ -545,6 +554,7 @@ STEPPER_CURRENT_CONTROL
 #define EEPROM_AVAILABLE EEPROM_I2C
 #endif
 
+// Smart RAMPS without(408) and with EEPROM (413)
 #if MOTHERBOARD == 408 || MOTHERBOARD == 413
 #ifndef __SAM3X8E__
 #erro oops! Be sure to have 'due Arduino' selected from the 'tools-> Boards menu'.
@@ -1014,19 +1024,22 @@ AD15 CH15
 #define TEMP_0_PIN       7 
 // These pins are for bed !
 #define HEATER_1_PIN     98 
-#define TEMP_1_PIN       3 
+#define TEMP_1_PIN       6 
 #define HEATER_2_PIN     8
-#define TEMP_2_PIN       6 
+#define TEMP_2_PIN       5 
 #define HEATER_3_PIN     9
-#define TEMP_3_PIN       5 
+#define TEMP_3_PIN       4 
 // D7
 #define HEATER_4_PIN     11
-#define TEMP_4_PIN       4
+#define TEMP_4_PIN       3
 // D8 
 #define HEATER_5_PIN     12
 #define HEATER_6_PIN     13
 #define HEATER_7_PIN     100
 #define HEATER_8_PIN     72
+#define TEMP_5_PIN       0
+#define TEMP_6_PIN       1
+#define TEMP_7_PIN       2
 
 #define THERMOCOUPLE_0_PIN  10   
 #define THERMOCOUPLE_1_PIN  11 

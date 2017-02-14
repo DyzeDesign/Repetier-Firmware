@@ -166,6 +166,7 @@ void GCode::keepAlive(enum FirmwareState state) {
 			GCodeSource::printAllFLN(PSTR("busy:heating"));	
 		} else if(state == DoorOpen) {
 			GCodeSource::printAllFLN(PSTR("busy:door open"));
+            UI_STATUS_F(Com::tDoorOpen);
 		} else { // processing and uncaught cases
 			GCodeSource::printAllFLN(PSTR("busy:processing"));
 		}
@@ -432,7 +433,7 @@ It must be called frequently to empty the incoming buffer.
 void GCode::readFromSerial()
 {
 #if defined(DOOR_PIN) && DOOR_PIN > -1
-	if(READ(DOOR_PIN) != DOOR_INVERTING) {
+	if(Printer::isDoorOpen()) {
 		keepAlive(DoorOpen);
 		return; // do nothing while door is open
 	}
@@ -479,7 +480,7 @@ void GCode::readFromSerial()
         GCodeSource::activeSource->timeOfLastDataPacket = time; //HAL::timeInMilliseconds();
         commandReceiving[commandsReceivingWritePosition++] = GCodeSource::activeSource->readByte();
         // first lets detect, if we got an old type ascii command
-        if(commandsReceivingWritePosition == 1)
+        if(commandsReceivingWritePosition == 1 && commentDetected == false)
         {
             if(GCodeSource::activeSource->waitingForResend >= 0 && GCodeSource::activeSource->wasLastCommandReceivedAsBinary)
             {

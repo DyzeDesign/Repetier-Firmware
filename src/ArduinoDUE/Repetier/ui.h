@@ -75,6 +75,8 @@
 #define UI_ACTION_HEATED_BED_DOWN      111
 #define UI_ACTION_FAN_UP               112
 #define UI_ACTION_FAN_DOWN             113
+// 700-999 reserved for custom events.
+
 
 #define UI_ACTION_DUMMY 10000
 #define UI_ACTION_BACK                  1000
@@ -245,6 +247,10 @@
 #define UI_ACTION_EXT3_PREHEAT          1235
 #define UI_ACTION_EXT4_PREHEAT          1236
 #define UI_ACTION_EXT5_PREHEAT          1237
+#define UI_ACTION_MEASURE_ZPROBE_HEIGHT	1238
+#define UI_ACTION_MEASURE_ZPROBE_HEIGHT2 1239
+#define UI_ACTION_MEASURE_ZP_REALZ      1240
+#define UI_ACTION_Z_OFFSET              1241
 
 
 // 1500-1699 reserved for custom actions
@@ -284,8 +290,6 @@
 #define UI_ACTION_XOFF                  4020
 #define UI_ACTION_YOFF                  4021
 #define UI_ACTION_ZOFF                  4022
-
-#define UI_ACTION_MEASURE_ZPROBE_HEIGHT	4030
 
 #define UI_ACTION_SHOW_USERMENU1        4101
 #define UI_ACTION_SHOW_USERMENU2        4102

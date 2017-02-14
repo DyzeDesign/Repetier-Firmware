@@ -792,6 +792,7 @@ automatically disabled.
 #define SUPPORT_LASER 0 // set 1 to enable laser support
 #define LASER_PIN -1    // set to pin enabling laser
 #define LASER_ON_HIGH 1 // Set 0 if low signal enables laser
+#define LASER_WARMUP_TIME 0// wait x milliseconds to start material burning before move
 
 // ##########################################################################################
 // ##                              CNC configuration                                       ##
@@ -1346,6 +1347,14 @@ instead of driving them with a single stepper. The same works for the other axis
 #define X2_DIR_PIN    E1_DIR_PIN
 #define X2_ENABLE_PIN E1_ENABLE_PIN
 
+/* Dual x axis mean having a printer with x motors and each controls one
+extruder position. In that case you can also have different resolutions for the
+2 motors. */
+#define DUAL_X_AXIS 0
+#define DUAL_X_RESOLUTION 0
+#define X2AXIS_STEPS_PER_MM 100
+
+
 #define FEATURE_TWO_YSTEPPER 0
 #define Y2_STEP_PIN   E1_STEP_PIN
 #define Y2_DIR_PIN    E1_DIR_PIN
@@ -1686,7 +1695,7 @@ The following settings override uiconfig.h!
 24 or CONTROLLER_ZONESTAR = Zonestar P802M with LCD 20x4 and 5 ADC button keypad
 */
 
-#define FEATURE_CONTROLLER 2 //NO_CONTROLLER
+#define FEATURE_CONTROLLER NO_CONTROLLER
 
 /* You can have one keypad connected via single analog pin as seen on
  some printers with Melzi V2.0 board, 20x4 LCD and 5 buttons keypad. This must be
