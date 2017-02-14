@@ -361,6 +361,7 @@ void TemperatureController::waitForTargetTemperature()
             Commands::printTemperatures();
             time = HAL::timeInMilliseconds();
         }
+        Com::printFLN(PSTR("bob 7"));
         Commands::checkForPeriodicalActions(true);
 		GCode::keepAlive(WaitHeater);
         if(fabs(targetTemperatureC - currentTemperatureC) <= 1)
@@ -403,8 +404,12 @@ void TemperatureController::resetAllErrorStates() {
 #if EXTRUDER_JAM_CONTROL
 void TemperatureController::setJammed(bool on)
 {
+   Com::printFLN(PSTR("set jammed"));
+
     if(on)
     {
+       Com::printFLN(PSTR("actually set the event"));
+
         flags |= TEMPERATURE_CONTROLLER_FLAG_JAM;
         Printer::setInterruptEvent(PRINTER_INTERRUPT_EVENT_JAM_DETECTED, true);
     }
@@ -428,6 +433,8 @@ void Extruder::markAllUnjammed()
 
 void Extruder::resetJamSteps()
 {
+   Com::printFLN(PSTR("reset jam."));
+
     jamStepsOnSignal = jamStepsSinceLastSignal;
     jamStepsSinceLastSignal = 0;
     Printer::setInterruptEvent(PRINTER_INTERRUPT_EVENT_JAM_SIGNAL0 + id, false);
@@ -812,6 +819,7 @@ void Extruder::setTemperatureForExtruder(float temperatureInCelsius, uint8_t ext
                 Commands::printTemperatures();
                 printedTime = currentTime;
             }
+            Com::printFLN(PSTR("bob 8"));
             Commands::checkForPeriodicalActions(true);
 			GCode::keepAlive(WaitHeater);
             //gcode_read_serial();
@@ -901,6 +909,8 @@ void Extruder::setMixingWeight(uint8_t extr,int weight)
 }
 void Extruder::step()
 {
+   Com::printFLN(PSTR("Extruder::step"));
+
     if(PrintLine::cur != NULL && PrintLine::cur->isAllEMotors()) {
 #if NUM_EXTRUDER > 0
         WRITE(EXT0_STEP_PIN, START_STEP_WITH_HIGH);
@@ -908,6 +918,8 @@ void Extruder::step()
         WRITE(EXT0_STEP2_PIN, START_STEP_WITH_HIGH);
 #endif		
 #if EXTRUDER_JAM_CONTROL && defined(EXT0_JAM_PIN) && EXT0_JAM_PIN > -1
+        Com::printFLN(PSTR("test jam 0"));
+
         TEST_EXTRUDER_JAM(0)
 #endif
 #endif
@@ -1240,6 +1252,8 @@ Call this function only, if interrupts are disabled.
 */
 void Extruder::step()
 {
+   Com::printFLN(PSTR("Other step"));
+
 #if NUM_EXTRUDER == 1
     WRITE(EXT0_STEP_PIN, START_STEP_WITH_HIGH);
 #if defined(EXT0_MIRROR_STEPPER) && EXT0_MIRROR_STEPPER

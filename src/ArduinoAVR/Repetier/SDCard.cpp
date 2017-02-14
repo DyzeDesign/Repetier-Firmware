@@ -134,6 +134,8 @@ void SDCard::pausePrint(bool intern)
 {
     if(!sd.sdactive) return;
     sdmode = 2; // finish running line
+    if (sdmode)
+       Com::printFLN(PSTR("SD paused stopped by user."));
     Printer::setMenuMode(MENU_MODE_SD_PAUSED, true);
     if(intern) {
         Commands::waitUntilEndOfAllBuffers();

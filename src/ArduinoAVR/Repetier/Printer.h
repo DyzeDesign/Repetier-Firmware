@@ -427,6 +427,8 @@ public:
 
     static INLINE void setInterruptEvent(uint8_t evt, bool highPriority)
     {
+       Com::printFLN(PSTR("Set event"));
+
         if(highPriority || interruptEvent == 0)
             interruptEvent = evt;
     }

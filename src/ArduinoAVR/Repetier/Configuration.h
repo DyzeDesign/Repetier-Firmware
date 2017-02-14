@@ -358,7 +358,7 @@ The codes are only executed for multiple extruder when changing the extruder. */
  * 0 will disable decoupling test */
 #define EXT0_DECOUPLE_TEST_PERIOD 18000
 /** Pin which toggles regularly during extrusion allowing jam control. -1 = disabled */
-#define EXT0_JAM_PIN -1
+#define EXT0_JAM_PIN 4
 /** Pull-up resistor for jam pin? */
 #define EXT0_JAM_PULLUP false
 
@@ -525,7 +525,7 @@ Retractions speeds are taken from RETRACTION_SPEED and RETRACTION_UNDO_SPEED
    2 and 3 are not jam detections, but only out of filament detection by a switch
    that changes the signal! 
 */
-#define JAM_METHOD 1
+#define JAM_METHOD 3
 // Steps normally needed for a full signal cycle.
 #define JAM_STEPS 220
 // Steps for reducing speed. Must be higher then JAM_STEPS
@@ -543,7 +543,7 @@ Determine what should be done if a jam is detected
 1 : Jam/out of filament dialog and block communication.
 2 : Message to host/server otherwise continue and mark extruder jammed
 */
-#define JAM_ACTION 1
+#define JAM_ACTION 2
 
 /** PID control only works target temperature +/- PID_CONTROL_RANGE.
 If you get much overshoot at the first temperature set, because the heater is going full power too long, you
@@ -1635,7 +1635,7 @@ The following settings override uiconfig.h!
 24 or CONTROLLER_ZONESTAR = Zonestar P802M with LCD 20x4 and 5 ADC button keypad
 */
 
-#define FEATURE_CONTROLLER NO_CONTROLLER
+#define FEATURE_CONTROLLER CONTROLLER_SMARTRAMPS
 
 /* You can have one keypad connected via single analog pin as seen on
  some printers with Melzi V2.0 board, 20x4 LCD and 5 buttons keypad. This must be

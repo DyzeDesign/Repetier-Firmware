@@ -1095,6 +1095,7 @@ ISR(EXTRUDER_TIMER_VECTOR)
     }
     else if(Printer::extruderStepsNeeded != 0)
     {
+       Com::printFLN(PSTR("steps needed Extruder::step"));
         Extruder::step();
         Printer::extruderStepsNeeded -= extruderLastDirection;
         Printer::insertStepperHighDelay();

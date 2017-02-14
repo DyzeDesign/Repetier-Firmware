@@ -90,6 +90,8 @@ void Commands::waitUntilEndOfAllMoves() {
 #endif
     while(PrintLine::hasLines()) {
         GCode::readFromSerial();
+        //Com::printFLN(PSTR("bob 1"));
+
         checkForPeriodicalActions(false);
 		GCode::keepAlive(Processing);
         UI_MEDIUM;
@@ -120,6 +122,7 @@ void Commands::waitUntilEndOfAllBuffers() {
                 Commands::executeGCode(code);
             code->popCurrentCommand();
         }
+        Com::printFLN(PSTR("bob 2"));
         Commands::checkForPeriodicalActions(false); // only called from memory
         UI_MEDIUM;
     }
@@ -931,6 +934,7 @@ void Commands::processGCode(GCode *com) {
             codenum += HAL::timeInMilliseconds();  // keep track of when we started waiting
             while((uint32_t)(codenum-HAL::timeInMilliseconds())  < 2000000000 ) {
                 GCode::readFromSerial();
+                Com::printFLN(PSTR("bob 3"));
                 Commands::checkForPeriodicalActions(true);
             }
             break;
@@ -1755,6 +1759,7 @@ void Commands::processMCode(GCode *com) {
                         printTemperatures();
                         codenum = previousMillisCmd = HAL::timeInMilliseconds();
                     }
+                    Com::printFLN(PSTR("bob 4"));
                     Commands::checkForPeriodicalActions(true);
 					GCode::keepAlive(WaitHeater);
                 }
@@ -1953,6 +1958,7 @@ void Commands::processMCode(GCode *com) {
                         HAL::pinMode(com->S,INPUT_PULLUP);
                 }
                 do {
+                   Com::printFLN(PSTR("bob 5"));
                     Commands::checkForPeriodicalActions(true);
 					GCode::keepAlive(WaitHeater);
                 } while(HAL::digitalRead(com->P) != comp);
@@ -2302,6 +2308,8 @@ void Commands::processMCode(GCode *com) {
             if(com->hasP()) Printer::setJamcontrolDisabled(com->P > 0);
             break;
         case 603:
+           Com::printFLN(PSTR("m603"));
+
             Printer::setInterruptEvent(PRINTER_INTERRUPT_EVENT_JAM_DETECTED, true);
             break;
         case 907: { // M907 Set digital trimpot/DAC motor current using axis codes.

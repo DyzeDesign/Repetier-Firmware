@@ -1146,6 +1146,7 @@ void PrintLine::waitForXFreeLines(uint8_t b, bool allowMoves)
     while(getLinesCount() + b > PRINTLINE_CACHE_SIZE)   // wait for a free entry in movement cache
     {
         GCode::readFromSerial();
+        //Com::printFLN(PSTR("bob 9"));
         Commands::checkForPeriodicalActions(allowMoves);
     }
 }
@@ -2180,6 +2181,7 @@ void PrintLine::arc(float *position, float *target, float *offset, float radius,
         if((count & 3) == 0)
         {
             GCode::readFromSerial();
+            Com::printFLN(PSTR("bob 10"));
             Commands::checkForPeriodicalActions(false);
             UI_MEDIUM; // do check encoder
         }
@@ -2232,6 +2234,7 @@ NonlinearSegment *curd;
 int32_t curd_errupd, stepsPerSegRemaining;
 int32_t PrintLine::bresenhamStep() // Version for delta printer
 {
+   Com::printFLN(PSTR("bresenham delta"));
 #if CPU_ARCH == ARCH_ARM
     if(!PrintLine::nlFlag)
 #else
@@ -2401,6 +2404,8 @@ int32_t PrintLine::bresenhamStep() // Version for delta printer
 #if USE_ADVANCE
             if(Printer::isAdvanceActivated())   // Use interrupt for movement
             {
+               Com::printFLN(PSTR("isAdvancedActivated"));
+
                 if(cur->isEPositiveMove())
                     Printer::extruderStepsNeeded++;
                 else
@@ -2408,6 +2413,7 @@ int32_t PrintLine::bresenhamStep() // Version for delta printer
             }
             else
 #endif
+               Com::printFLN(PSTR("calling Extruder::step"));
                 Extruder::step();
             cur->error[E_AXIS] += cur_errupd;
         }
@@ -2617,6 +2623,7 @@ int lastblk = -1;
 int32_t cur_errupd;
 int32_t PrintLine::bresenhamStep() // version for Cartesian printer
 {
+   //Com::printFLN(PSTR("bresenham"));
 #if CPU_ARCH == ARCH_ARM
     if(!PrintLine::nlFlag)
 #else
@@ -2764,6 +2771,8 @@ int32_t PrintLine::bresenhamStep() // version for Cartesian printer
 #if USE_ADVANCE
             if(Printer::isAdvanceActivated())   // Use interrupt for movement
             {
+               Com::printFLN(PSTR("isAdvancedActivated"));
+
                 if(cur->isEPositiveMove())
                     Printer::extruderStepsNeeded++;
                 else
@@ -2771,6 +2780,7 @@ int32_t PrintLine::bresenhamStep() // version for Cartesian printer
             }
             else
 #endif
+               Com::printFLN(PSTR("calling Extruder::step 2"));
                 Extruder::step();
             cur->error[E_AXIS] += cur_errupd;
         }

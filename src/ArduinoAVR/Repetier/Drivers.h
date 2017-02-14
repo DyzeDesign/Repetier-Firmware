@@ -77,6 +77,7 @@ public:
             target--;
             HAL::pingWatchdog();
             if((target & 127) == 0) {
+               Com::printFLN(PSTR("bob 11"));
                 Commands::checkForPeriodicalActions(false);
 				GCode::keepAlive(Processing);
 			}

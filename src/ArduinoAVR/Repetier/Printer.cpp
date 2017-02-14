@@ -1188,6 +1188,7 @@ GCode::executeFString(Com::tStartupGCode);
 
 void Printer::defaultLoopActions()
 {
+   //Com::printFLN(PSTR("bob 6"));
     Commands::checkForPeriodicalActions(true);  //check heater every n milliseconds
     UI_MEDIUM; // do check encoder
     millis_t curtime = HAL::timeInMilliseconds();
@@ -1812,7 +1813,12 @@ void Printer::reportCaseLightStatus() {
 }
 
 void Printer::handleInterruptEvent() {
+   
+   //Com::printFLN(PSTR("CHECK"));
     if(interruptEvent == 0) return;
+
+    Com::printFLN(PSTR("INTERRUPTION"));
+
     int event = interruptEvent;
     interruptEvent = 0;
     switch(event) {
@@ -1843,6 +1849,8 @@ void Printer::handleInterruptEvent() {
     case PRINTER_INTERRUPT_EVENT_JAM_SIGNAL4:
     case PRINTER_INTERRUPT_EVENT_JAM_SIGNAL5:
         {
+       Com::printFLN(PSTR("Sup Sup"));
+
             if(isJamcontrolDisabled()) break;
             fast8_t extruderIndex = event - PRINTER_INTERRUPT_EVENT_JAM_SIGNAL0;
             int16_t steps = abs(extruder[extruderIndex].jamStepsOnSignal);
